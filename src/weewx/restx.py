@@ -110,6 +110,8 @@ from weeutil.weeutil import to_int, to_float, to_bool, timestamp_to_string, to_s
 
 log = logging.getLogger(__name__)
 
+DEFAULT_MAX_QUEUE = 100
+
 
 class FailedPost(IOError):
     """Raised when a post fails, and is unlikely to succeed if retried."""
@@ -636,10 +638,11 @@ class StdWunderground(StdRESTful):
         do_rapidfire_post = to_bool(_ambient_dict.pop('rapidfire', False))
         do_archive_post = to_bool(_ambient_dict.pop('archive_post',
                                                     not do_rapidfire_post))
+        max_queue_size = to_int(_ambient_dict.pop('max_queue_size', DEFAULT_MAX_QUEUE))
 
         if do_archive_post:
             _ambient_dict.setdefault('server_url', StdWunderground.pws_url)
-            self.archive_queue = queue.Queue()
+            self.archive_queue = queue.Queue(max_queue_size)
             self.archive_thread = AmbientThread(
                 self.archive_queue,
                 _manager_dict,
@@ -659,7 +662,7 @@ class StdWunderground(StdRESTful):
             _ambient_dict.setdefault('max_tries', 1)
             _ambient_dict.setdefault('rtfreq', 2.5)
             self.cached_values = CachedValues()
-            self.loop_queue = queue.Queue()
+            self.loop_queue = queue.Queue(max_queue_size)
             self.loop_thread = AmbientLoopThread(
                 self.loop_queue,
                 _manager_dict,
@@ -679,12 +682,17 @@ class StdWunderground(StdRESTful):
         if weewx.debug >= 3:
             log.debug("Cached packet: %s",
                       to_sorted_string(self.cached_values.get_packet(event.packet['dateTime'])))
-        self.loop_queue.put(
-            self.cached_values.get_packet(event.packet['dateTime']))
+        try:
+            self.loop_queue.put(self.cached_values.get_packet(event.packet['dateTime']))
+        except queue.Full:
+            log.error("Wunderground-RF: Queue is full.")
 
     def new_archive_record(self, event):
         """Puts new archive records in the archive queue"""
-        self.archive_queue.put(event.record)
+        try:
+            self.archive_queue.put(event.record)
+        except queue.Full:
+            log.error("Wunderground-PWS: Queue is full.")
 
 
 class CachedValues(object):
@@ -751,7 +759,8 @@ class StdPWSWeather(StdRESTful):
             config_dict, 'wx_binding')
 
         _ambient_dict.setdefault('server_url', StdPWSWeather.archive_url)
-        self.archive_queue = queue.Queue()
+        max_queue_size = to_int(_ambient_dict.pop('max_queue_size', DEFAULT_MAX_QUEUE))
+        self.archive_queue = queue.Queue(max_queue_size)
         self.archive_thread = AmbientThread(self.archive_queue, _manager_dict,
                                             protocol_name="PWSWeather",
                                             **_ambient_dict)
@@ -760,7 +769,10 @@ class StdPWSWeather(StdRESTful):
         log.info("PWSWeather: Data for station %s will be posted", _ambient_dict['station'])
 
     def new_archive_record(self, event):
-        self.archive_queue.put(event.record)
+        try:
+            self.archive_queue.put(event.record)
+        except queue.Full:
+            log.error("PWSWeather: Queue is full.")
 
 
 # For backwards compatibility with early alpha versions:
@@ -790,7 +802,8 @@ class StdWOW(StdRESTful):
             config_dict, 'wx_binding')
 
         _ambient_dict.setdefault('server_url', StdWOW.archive_url)
-        self.archive_queue = queue.Queue()
+        max_queue_size = to_int(_ambient_dict.pop('max_queue_size', DEFAULT_MAX_QUEUE))
+        self.archive_queue = queue.Queue(max_queue_size)
         self.archive_thread = WOWThread(self.archive_queue, _manager_dict,
                                         protocol_name="WOW",
                                         **_ambient_dict)
@@ -799,7 +812,10 @@ class StdWOW(StdRESTful):
         log.info("WOW: Data for station %s will be posted", _ambient_dict['station'])
 
     def new_archive_record(self, event):
-        self.archive_queue.put(event.record)
+        try:
+            self.archive_queue.put(event.record)
+        except queue.Full:
+            log.error("WOW: Queue is full.")
 
 
 class AmbientThread(RESTThread):
@@ -1149,7 +1165,8 @@ class StdCWOP(StdRESTful):
         _manager_dict = weewx.manager.get_manager_dict_from_config(
             config_dict, 'wx_binding')
 
-        self.archive_queue = queue.Queue()
+        max_queue_size = to_int(_cwop_dict.pop('max_queue_size', DEFAULT_MAX_QUEUE))
+        self.archive_queue = queue.Queue(max_queue_size)
         self.archive_thread = CWOPThread(self.archive_queue, _manager_dict,
                                          **_cwop_dict)
         self.archive_thread.start()
@@ -1157,7 +1174,10 @@ class StdCWOP(StdRESTful):
         log.info("CWOP: Data for station %s will be posted", _cwop_dict['station'])
 
     def new_archive_record(self, event):
-        self.archive_queue.put(event.record)
+        try:
+            self.archive_queue.put(event.record)
+        except queue.Full:
+            log.error("CWOP: Queue is full.")
 
 
 class CWOPThread(RESTThread):
@@ -1460,7 +1480,8 @@ class StdStationRegistry(StdRESTful):
         # at the same time.
         _registry_dict.setdefault('delay_post', random.randint(0, 45))
 
-        self.archive_queue = queue.Queue()
+        max_queue_size = to_int(_registry_dict.pop('max_queue_size', DEFAULT_MAX_QUEUE))
+        self.archive_queue = queue.Queue(max_queue_size)
         self.archive_thread = StationRegistryThread(self.archive_queue,
                                                     **_registry_dict)
         self.archive_thread.start()
@@ -1468,7 +1489,10 @@ class StdStationRegistry(StdRESTful):
         log.info("StationRegistry: Station will be registered.")
 
     def new_archive_record(self, event):
-        self.archive_queue.put(event.record)
+        try:
+            self.archive_queue.put(event.record)
+        except queue.Full:
+            log.error("StationRegistry: Queue is full.")
 
 
 class StationRegistryThread(RESTThread):
@@ -1670,14 +1694,18 @@ class StdAWEKAS(StdRESTful):
         site_dict['manager_dict'] = weewx.manager.get_manager_dict_from_config(
             config_dict, 'wx_binding')
 
-        self.archive_queue = queue.Queue()
+        max_queue_size = to_int(site_dict.pop('max_queue_size', DEFAULT_MAX_QUEUE))
+        self.archive_queue = queue.Queue(max_queue_size)
         self.archive_thread = AWEKASThread(self.archive_queue, **site_dict)
         self.archive_thread.start()
         self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
         log.info("AWEKAS: Data will be uploaded for user %s", site_dict['username'])
 
     def new_archive_record(self, event):
-        self.archive_queue.put(event.record)
+        try:
+            self.archive_queue.put(event.record)
+        except queue.Full:
+            log.error("AWEKAS: Queue is full.")
 
 
 # For compatibility with some early alpha versions:

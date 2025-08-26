@@ -1,0 +1,24 @@
+
+version: "3.8"
+
+services:
+
+    # this mounts /root/repos in the image
+    # to ./repos in the current working directory
+    # which must be present before use
+
+    #
+    # IMPORTANT - make sure any keys dirs/files are in .gitignore
+    # IMPORTANT - make sure any keys dirs/files are in .gitignore
+    # IMPORTANT - make sure any keys dirs/files are in .gitignore
+
+    reposync:
+        image: reposync
+        container_name: rocky8-reposync
+        #volumes:
+          #- ./repos:/root/repos
+          #- ./keys:/root/keys
+        build:
+            context: ./
+            target: reposync
+

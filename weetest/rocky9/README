@@ -1,0 +1,31 @@
+
+docker buildup rocky8
+----------------------
+
+docker compose build base v4-pkg v4-setup v5-pip [--no-cache]
+docker images
+docker compose up v5-pip v4-pkg v4-setup [-d]
+docker compose ps
+docker compose logs -f  [imagename(s)]
+docker compose down
+
+output of docker images:
+
+    [vince@vinces-Mac-mini rocky9 (refactor %=)]$ docker images
+    rocky9          v4-pkg            432c2375f0dd   9 minutes ago    421MB
+    rocky9          v4-setup          4bd9c51fe355   3 hours ago      504MB
+    rocky9          v5-pip            fa9df0825321   3 hours ago      559MB
+    rocky9          base              5f2cf186cad0   3 hours ago      283MB
+    rocky8          v5-pip            84a7d02ad715   10 hours ago     609MB
+    rocky8          v4-setup          514cb68c2c13   11 hours ago     529MB
+    rocky8          v4-pkg            122046438cc3   11 hours ago     358MB
+    rocky8          base              62c427cc509f   11 hours ago     311MB
+    rockylinux      8.8               1632c4ad6456   6 months ago     220MB
+    rockylinux      9.2               8b818c31dccf   6 months ago     193MB
+
+see the Dockerfile and docker-compose.yml files for details....
+
+about python versions...
+ - base os is python 3.9.16
+ - v5 pip uses the os python
+ - v4 pkg and setup require some sleight of hand for the modules and repo keys

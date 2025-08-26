@@ -1,0 +1,19 @@
+0.5 2022-0815
+* add sensor 5
+* fix installer for sensors field map
+* add which sensor is which in .tmpl
+
+0.4 2021-0810
+* fix if-then in .tmpl
+* add sensors 3+4
+
+0.3 2021-0109
+* clean up a little
+* show battery status
+
+0.2 2020-1219
+* add screenshot
+* add outside temp/bat status in skin
+
+0.1 2020-1108
+* original

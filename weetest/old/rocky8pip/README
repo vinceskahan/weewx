@@ -1,0 +1,22 @@
+docker buildup pip v5
+----------------------
+
+# setup
+sudo mkdir -p /mnt/rocky8-archive
+sudo mkdir -p /mnt/rocky8-html
+sudo chown -R 1234:1234 /mnt/rocky8-archive
+sudo chown -R 1234:1234 /mnt/rocky8-html
+
+# build
+docker build -t rocky8:test .
+
+# run it
+docker-compose up -d
+
+### default Seasons skin is on http://dockerhostname:8801/
+### the Belchertown skin is on http://dockerhostname:8801/belchertown/
+
+# for truncated builds remember to clean the docker mess up
+# docker ps -a and look for exited containers
+# then docker rm their id or name
+

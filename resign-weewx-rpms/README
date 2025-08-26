@@ -1,0 +1,95 @@
+
+# this creates a docker image 'reposync' that can
+# be used to mirror the weewx repo(s) and optionally
+# rpm --resign the contents with a desired key
+#
+# see the setup.sh and resign-it.sh scripts for details
+# and where to edit to match your desired setup
+#
+
+# make the repodir locally
+mkdir -p ./repos ./keys
+
+
+# make a directory and save your signing key in ascii format
+# ala:
+#    gpg --list-keys
+#    gpg --export-secret-key -a "your key name here" > keys/seckey.asc
+
+# make sure your key name that you exported lines up
+# with the .sh scripts here.  Look for EDITME therein.
+
+#------------------------------------------------------
+# SECURITY WARNING - do not check keys into git !!!!
+# SECURITY WARNING - do not check keys into git !!!!
+# SECURITY WARNING - do not check keys into git !!!!
+#------------------------------------------------------
+
+# build the image(s)
+docker compose build [--no-cache]
+
+# reposync a mirror of the rpms
+docker compose run reposync
+docker compose down
+
+# to resign all with a test key
+#  - if you have a password protected key it will prompt you for it
+docker compose run reposync bash
+(edit and run 'bash /tmp/setup.sh')
+(and then run 'bash /tmp/resign-it.sh')
+docker compose down
+
+##### alternate is just to use bash
+##### if your ~/.rpmmacros file points to
+##### the desired key...
+#####
+##### run:
+#####     rpm --resign *.rpm 
+##### while in a directory of rpms
+#####
+##### and then verify with:
+#####     rpm -qi *rpm | grep Sig
+#####
+
+# be sure to remember to 'docker compose down'
+# and if needed you can clean up all dangling
+# containers with
+#   docker ps -a
+#   docker rm $(docker ps -a -q)
+
+###############################################
+# longer example
+###############################################
+#
+## https://access.redhat.com/articles/3359321
+#
+## https://gist.github.com/woods/8970150?permalink_comment_id=4485843#gistcomment-4485843
+#gpg --full-gen-key --batch <(echo "Key-Type: 1"; \
+#                             echo "Key-Length: 4096"; \
+#                             echo "Subkey-Type: 1"; \
+#                             echo "Subkey-Length: 4096"; \
+#                             echo "Expire-Date: 0"; \
+#                             echo "Name-Real: weewx test key"; \
+#                             echo "Name-Email: vince@example.com"; \
+#                             echo "%no-protection"; )
+#
+#echo '%_gpg_name weewx test key' >> ~/.rpmmacros
+#gpg --list-keys
+#gpg --export -a 'weewx test key' > keys.export
+#
+#
+#yum install -y rpm-sign yum-utils
+#rpm --import keys.export
+#
+#rpm -q gpg-pubkey --qf '%{name}-%{version}-%{release} --> %{summary}\n'
+#
+#
+##rpm --addsign wget-1.21.1-7.el9.aarch64.rpm
+#rpm --resign wget-1.21.1-7.el9.aarch64.rpm
+#
+## to sign it
+##    rpm --addsign foo.rpm
+#
+## to import keys
+##     rpm --import https://weewx.com/keys.html
+###

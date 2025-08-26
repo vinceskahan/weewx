@@ -1,0 +1,646 @@
+#errorCatcher Echo
+##    $Revision: 783 $
+##    $Author: tkeffer $
+##    $Date: 2013-01-01 17:44:05 -0800 (Tue, 01 Jan 2013) $
+#encoding UTF-8
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="https://www.w3.org/1999/xhtml">
+  <head profile="https://www.w3.org/2005/10/profile">
+    #if $encoding == 'utf8'
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    #end if    
+    <title>$station.location Current Weather Conditions</title>
+    <link rel="stylesheet" type="text/css" href="weewx.css"/>
+    <link rel="icon" type="image/png" href="favicon.ico" />
+    <script type="text/javascript">
+      function openURL(urlname)
+      {
+        window.location=urlname;
+      }
+      function openNoaaFile(date)
+      {
+        var url = "NOAA/NOAA-";
+        url = url + date;
+        url = url + ".txt";
+        window.location=url;
+      }
+    </script>
+
+    <!-- ref: https://canvas-gauges.com/documentation/user-guide/ -->
+    <script src="gauge.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <div id="container">
+      <div id="masthead">
+        <h1>$station.location</h1>
+        <h2>Current Weather Conditions</h2>
+          <h2>$current.dateTime</h2>
+      </div>
+
+      <div id="stats_group">
+
+        <div class="stats">
+
+<center>
+<!-- <object width="290" height="300"><param name="movie" value="http://www.wunderground.com/swf/pws_mini_rf.swf?station=KWAFEDER15&freq=2.5&camurl=http%3A%2F%2Ficons.wunderground.com%2Fwebcamramdisk%2Fv%2Fd%2Fvds%2F1%2Fcurrent.jpg&units=english&lang=EN" /><embed src="http://www.wunderground.com/swf/pws_mini_rf.swf?station=KWAFEDER15&camurl=http%3A%2F%2Ficons.wunderground.com%2Fwebcamramdisk%2Fv%2Fd%2Fvds%2F1%2Fcurrent.jpg&freq=2.5&units=english&lang=EN" type="application/x-shockwave-flash" width="290" height="300" /></object>-->
+<object width="390" height="260"><img width=390 height=260 src="webcam.jpg"?></img></object>
+ 
+<p>
+</center>
+<p>
+
+          <div class="stats_header">
+            Current Conditions
+          </div>
+
+          <table>
+            <tbody>
+              <tr>
+                <td class="stats_label">Outside Temperature</td>
+                <td class="stats_data">$current.outTemp</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Ecowitt Outside Temp</td>
+                <td class="stats_data">$latest.extraTemp1</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Baseball Room Temp</td>
+                <td class="stats_data">$latest.extraTemp5</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Wind Chill</td>
+                <td class="stats_data">$current.windchill</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Heat Index</td>
+                <td class="stats_data">$current.heatindex</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Dewpoint</td>
+                <td class="stats_data">$current.dewpoint</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Humidity</td>
+                <td class="stats_data">$current.outHumidity</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Barometer</td>
+                <td class="stats_data">$current.barometer</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Barometer trend ($trend.time_delta.hour.format("%.0f"))</td>
+                <td class="stats_data">$trend.barometer</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Wind</td>
+                <td class="stats_data">$current.windSpeed from $current.windDir</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Rain Rate</td>
+                <td class="stats_data">$current.rainRate</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Last Rain</td>
+                <td class="stats_data">$time_since_last_rain.long_form</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Historical Records</td>
+                <td class="stats_data">$day.outTemp.historical_max alltime ($day.outTemp.historical_maxtime.format("%Y"))<br>
+                                       $day.outTemp.historical_max_avg ave high<br>
+                                       $day.outTemp.historical_min_avg ave low<br>
+                                       $day.outTemp.historical_min alltime ($day.outTemp.historical_mintime.format("%Y"))</td>
+              </tr>
+              <tr>
+                <td class="stats_label">Inside Temperature</td>
+                <td class="stats_data">$current.inTemp</td>
+              </tr>
+<!--
+              #if $day.extraTemp1.has_data
+              <tr>
+                <td class="stats_label">Ecowitt Temperature</td>
+                <td class="stats_data">$current.extraTemp1</td>
+              </tr>
+              #end if
+-->
+              #if $day.UV.has_data
+              <tr>
+                <td class="stats_label">UV</td>
+                <td class="stats_data">$current.UV</td>
+              </tr>
+              #end if
+              #if $day.ET.has_data and $day.ET.sum.raw > 0.0
+              <tr>
+                <td class="stats_label">ET</td>
+                <td class="stats_data">$current.ET</td>
+              </tr>
+              #end if
+              #if $day.radiation.has_data
+              <tr>
+                <td class="stats_label">Solar Radiation</td>
+                <td class="stats_data">$current.radiation</td>
+              </tr>
+              #end if
+              <tr>
+                <td class="stats_label">Console Battery (4.8V = ok)</td>
+                <td class="stats_data">$current.consBatteryVoltage</td>
+              </tr>
+              <tr>
+                <td class="stats_label">ISS Battery (0 = ok)</td>
+                <td class="stats_data">$current.txBatteryStatus</td>
+              </tr>
+<!--
+              ## add total daylight information
+              #include "standard_celestial.inc"
+-->
+            </tbody>
+          </table>
+        </div>
+
+        <p>&nbsp;</p>
+
+        <div class="stats">
+          <div class="stats_header">
+            Since Midnight
+          </div>
+          <table>
+            <tbody>
+              <tr>
+                <td class="stats_label">
+                  High Temperature<br/>
+                  Low Temperature
+                </td>
+                <td class="stats_data">
+                  $day.outTemp.max at $day.outTemp.maxtime<br/>
+                  $day.outTemp.min at $day.outTemp.mintime
+                </td>
+              </tr>
+              <tr>
+                <td class="stats_label">
+                  High Heat Index<br/>
+                  Low Wind Chill
+                </td>
+                <td class="stats_data">
+                  $day.heatindex.max at $day.heatindex.maxtime<br/>
+                  $day.windchill.min at $day.windchill.mintime
+                </td>
+              </tr>
+              <tr>
+                <td class="stats_label">
+                  High Humidity<br/>
+                  Low Humidity
+                </td>
+                <td class="stats_data">
+                  $day.outHumidity.max at $day.outHumidity.maxtime<br/>
+                  $day.outHumidity.min at $day.outHumidity.mintime
+                </td>
+              </tr>
+              <tr>
+                <td class="stats_label">
+                  High Dewpoint<br/>
+                  Low Dewpoint
+                </td>
+                <td class="stats_data">
+                  $day.dewpoint.max at $day.dewpoint.maxtime<br/>
+                  $day.dewpoint.min at $day.dewpoint.mintime
+                </td>
+              </tr>
+              <tr>
+                <td class="stats_label">
+                  High Barometer<br/>
+                  Low Barometer
+                </td>
+                <td class="stats_data">
+                  $day.barometer.max at $day.barometer.maxtime<br/>
+                  $day.barometer.min at $day.barometer.mintime
+                </td>
+              </tr>
+              <tr>
+                <td class="stats_label">Today's Rain</td>
+                <td class="stats_data">$day.rain.sum</td>
+              </tr>
+              <tr>
+                <td class="stats_label">High Rain Rate</td>
+                <td class="stats_data">$day.rainRate.max at $day.rainRate.maxtime</td>
+              </tr>
+              <tr>
+                <td class="stats_label">
+                  High Wind
+                </td>
+                <td class="stats_data">
+                  $day.wind.max from $day.wind.gustdir at $day.wind.maxtime
+                </td>
+              </tr>
+              <tr>
+                <td class="stats_label">
+                  Average Wind
+                </td>
+                <td class="stats_data">
+                  $day.wind.avg
+                </td>
+              </tr>
+              <tr>
+                <td class="stats_label">
+                  RMS Wind
+                </td>
+                <td class="stats_data">
+                  $day.wind.rms
+                </td>
+              </tr>
+
+              <tr>
+                <td class="stats_label">
+                  Vector Average Speed<br/>
+                  Vector Average Direction
+                </td>
+                <td class="stats_data">
+                  $day.wind.vecavg<br/>
+                  $day.wind.vecdir
+                </td>
+              </tr>
+
+              <tr>
+                <td class="stats_label">
+                  High Inside Temperature<br/>
+                  Low Inside Temperature
+                </td>
+                <td class="stats_data">
+                  $day.inTemp.max at $day.inTemp.maxtime<br/>
+                  $day.inTemp.min at $day.inTemp.mintime
+                </td>
+              </tr>
+			  #if $day.extraTemp1.has_data
+              <tr>
+                <td class="stats_label">
+                  High Ecowitt Temperature<br/>
+                  Low Ecowitt Temperature
+                </td>
+                <td class="stats_data">
+                  $day.extraTemp1.max at $day.extraTemp1.maxtime<br/>
+                  $day.extraTemp1.min at $day.extraTemp1.mintime
+                </td>
+              </tr>
+              #end if
+              #if $day.UV.has_data
+              <tr>
+                <td class="stats_label">
+                  High UV<br/>
+                  Low UV
+                </td>
+                <td class="stats_data">
+                  $day.UV.max at $day.UV.maxtime<br/>
+                  $day.UV.min at $day.UV.mintime
+                </td>
+              </tr>
+              #end if
+              #if $day.ET.has_data and $day.ET.sum.raw >0.0
+              <tr>
+                <td class="stats_label">
+                  High ET<br/>
+                  Low ET
+                </td>
+                <td class="stats_data">
+                  $day.ET.max at $day.ET.maxtime<br/>
+                  $day.ET.min at $day.ET.mintime
+                </td>
+              </tr>
+              #end if
+              #if $day.radiation.has_data
+              <tr>
+                <td class="stats_label">
+                  High Radiation<br/>
+                  Low Radiation
+                </td>
+                <td class="stats_data">
+                  $day.radiation.max at $day.radiation.maxtime<br/>
+                  $day.radiation.min at $day.radiation.mintime
+                </td>
+              </tr>
+              #end if
+            </tbody>
+          </table>
+        </div> <!--End class "stats" -->
+
+        <p>&nbsp;</p>
+
+        #if $Extras.has_key('radar_img')
+        <div id="radar_img">
+              <a  href="$Extras.radar_url"><img src="$Extras.radar_img" alt="Radar" /></a>
+          <p>Click image for expanded radar loop</p>
+        </div>
+        #end if
+
+
+        <p>&nbsp;</p>
+        <div id="about">
+          <table>
+            <caption class="caption">About this Station</caption>
+            <tr>
+              <td class="label">Latitude:</td>
+              <td class="data">$station.latitude[0]&deg; $station.latitude[1]' $station.latitude[2]</td>
+            </tr>
+            <tr>
+              <td class="label">Longitude:</td>
+              <td class="data">$station.longitude[0]&deg; $station.longitude[1]' $station.longitude[2]</td>
+            </tr>
+            <tr>
+              <td class="label">Altitude:</td>
+              <td class="data">$station.altitude</td>
+            </tr>
+          <tr></tr>
+            <tr>
+              <td class="label">Station type:</td>
+              <td class="data"><a href="http://davisnet.com/weather/products/professional-home-weather-stations.asp"> Davis $station.hardware</a> </td>
+            </tr>
+            <tr>
+              <td class="label">Software version:</td>
+              <td class="data"><a href="https://www.weewx.com">'weewx'</a> v$station.version</td>
+            </tr>
+            <tr>
+              <td class="label">Weewx uptime:</td>
+              <td class="data">$station.uptime.long_form</td>
+            </tr>
+            <tr>
+              <td class="label">Server uptime:</td>
+              <td class="data">$station.os_uptime.long_form</td>
+            </tr>
+<!-- we don't run this now
+            <tr>
+              <td class="label">Performance Graphs</td>
+              <td class="data"><a href="/weewx/cmon">here</a></td>
+            </tr>
+          <tr>
+             <td class="label">Timelapse Movies</td>
+             <td class="data"><a href="/timelapse">here</a></td>
+          </tr>
+-->
+
+        </table>
+         #include "myuploads.inc"
+
+        </div> <!-- End id "about" -->
+
+      </div>
+
+      <div id="content">
+
+      <div id="navbar">
+
+<!-- temperature -->
+<canvas id="outTempCanvasGauge"></canvas>
+<script>
+    // these will come from weewx eventually
+    //var outTemp = 70.2
+    //var alltimeMin = 13.0
+    //var alltimeMax = 105.9
+    //var weekMin = 56.3
+    //var weekMax = 91.5
+
+    var outTemp    = $current.outTemp.formatted
+    var weekMin    = $week.outTemp.min.formatted
+    var weekMax    = $week.outTemp.max.formatted
+    var alltimeMax = $alltime.outTemp.max.formatted
+    var alltimeMin = $alltime.outTemp.min.formatted
+
+    var outTempGauge = new RadialGauge({
+        renderTo: outTempCanvasGauge,
+        width: 200,
+        height: 200,
+        units: "Temperature",
+        title: false,
+        minValue: 0,
+        maxValue: 120,
+        minorTicks: 10,
+        majorTicks: [ '0','20','40','60','80','100','120'],
+        strokeTicks: false,
+        highlights: [
+            { "from": alltimeMin, "to": weekMin,    "color": "lightsalmon"  },
+            { "from": weekMax,    "to": alltimeMax, "color": "lightsalmon"  }
+        ],
+        valueBox: true,
+        valueDec: 1,
+        valueInt: 2,
+        value: outTemp,
+    });
+    outTempGauge.draw();
+</script>
+
+<!-- humidity -->
+<canvas id="humidityCanvasGauge"></canvas>
+<script>
+    // these will come from weewx eventually
+    //var outHumidity = 55
+    //var alltimeMin = 15.0
+    //var alltimeMax = 100.9
+    //var weekMin = 36.3
+    //var weekMax = 90.5
+
+    var outHumidity = $current.outHumidity.formatted
+    var weekMin     = $week.outHumidity.min.formatted
+    var weekMax     = $week.outHumidity.max.formatted
+    var alltimeMax  = $alltime.outHumidity.max.formatted
+    var alltimeMin  = $alltime.outHumidity.min.formatted
+
+    var humidityGauge = new RadialGauge({
+        renderTo: humidityCanvasGauge,
+        width: 200,
+        height: 200,
+        units: "Humidity",
+        title: false,
+        minValue: 0,
+        maxValue: 100,
+        minorTicks: 10,
+        majorTicks: [ '0','20','40','60','80','100'],
+        strokeTicks: false,
+        highlights: [
+            { "from": alltimeMin, "to": weekMin,    "color": "lightsalmon"  },
+            { "from": weekMax,    "to": alltimeMax, "color": "lightsalmon"  }
+        ],
+        valueBox: true,
+        valueDec: 0,
+        valueInt: 2,
+        value: outHumidity,
+    });
+    humidityGauge.draw();
+</script>
+
+<!-- wind -->
+<canvas id="windGustCanvasGauge"></canvas>
+<script>
+    // these will come from weewx eventually
+    //var windSpeed = 15
+    //var alltimeMin = 0.0
+    //var alltimeMax = 76.2
+    //var weekMin = 0.0
+    //var weekMax = 16.5
+
+    var windSpeed  = $current.windSpeed.formatted
+    var weekMin    = $week.wind.min.formatted
+    var weekMax    = $week.wind.max.formatted
+    var alltimeMax = $alltime.wind.max.formatted
+    var alltimeMin = $alltime.wind.min.formatted
+
+    var windGustGauge = new RadialGauge({
+        renderTo: windGustCanvasGauge,
+        width: 200,
+        height: 200,
+        units: "MPH",
+        title: false,
+        minValue: 0,
+        maxValue: 100,
+        minorTicks: 10,
+        majorTicks: [ '0','20','40','60','80','100'],
+        strokeTicks: false,
+        highlights: [
+            { "from": alltimeMin, "to": weekMin,    "color": "lightsalmon"  },
+            { "from": weekMax,    "to": alltimeMax, "color": "lightsalmon"  }
+        ],
+        valueBox: true,
+        valueDec: 0,
+        valueInt: 1,
+        value: windSpeed,
+    });
+    windGustGauge.draw();
+</script>
+ 
+   <!-- rain -->
+<canvas id="rainTotalCanvasGauge"></canvas>
+<script>
+
+    // these will come from weewx eventually
+    // var rainValue = 0.17
+    var rainValue = $day.rain.sum.formatted
+
+    // change scale based on value for readability
+    if (rainValue < 100) { maxValue = 15; minorTicks =  4; majorTicks = [ '0','5','10','15' ] };
+    if (rainValue < 5)   { maxValue = 5;  minorTicks =  5; majorTicks = [ '0','1','2','3','4','5' ]            };
+    if (rainValue < 3)   { maxValue = 3;  minorTicks = 10; majorTicks = [ '0','0.5','1','1.5','2','2.5','3' ]  };
+    if (rainValue < 1)   { maxValue = 1;  minorTicks = 10; majorTicks = [ '0','0.2','0.4','0.6','0.8','1.00' ] };
+
+    var rainTotalGauge = new LinearGauge({
+        value: rainValue,
+        renderTo: rainTotalCanvasGauge,
+        width: 100,
+        height: 200,
+        borders: true,
+        strokeTicks: true,
+        barBeginCircle: false,
+        borderShadowWidth: "0",
+        units: "inches",
+        valueDec: 2,
+        valueInt: 1,
+        minValue: 0,
+        maxValue: maxValue,
+        valueBox: 1,
+        colorBarProgress: "lightsalmon",
+        colorBar: "white",
+        minorTicks: minorTicks,
+        majorTicks: majorTicks,
+
+    });
+    rainTotalGauge.draw();
+</script>
+
+<p>
+
+        <input type="button" value="    Current   " onclick="openURL('index.html')" />
+        <input type="button" value="     Week     " onclick="openURL('week.html')" />
+        <input type="button" value="     Month    " onclick="openURL('month.html')" />
+        <input type="button" value="     Year     " onclick="openURL('year.html')" />
+        <input type="button" value="   Forecast   " onclick="openURL('forecast/index.html')" />
+        <input type="button" value="      Air     " onclick="openURL('purpleair.html')" />
+<br>
+<!--
+        <input type="button" value="    Forecast  " onclick="openURL('forecast')" /> 
+-->
+        <input type="button" value="    Phone     " onclick="openURL('phone.html')" />
+        <input type="button" value="   Bootstrap  " onclick="openURL('bootstrap/')" />
+        <input type="button" value=" Memory Usage " onclick="openURL('mem/')" />
+        <input type="button" value="    Alltime   " onclick="openURL('alltime.html')" />
+        <input type="button" value="    About     " onclick="openURL('about.html')" />
+        <!-- <input type="button" value="   Ten Year   " onclick="openURL('10year.html')" /> -->
+        <p>Monthly summary:&nbsp;
+        <select NAME=noaaselect onchange="openNoaaFile(value)">
+        #for $monthYear in $SummaryByMonth
+            <option value="$monthYear">$monthYear</option>
+        #end for
+	    <option selected>-Select month-</option>
+        </select>
+        <br/>
+        Yearly summary:&nbsp;
+        <select NAME=noaaselect onchange="openNoaaFile(value)">
+        #for $yr in $SummaryByYear
+            <option value="$yr">$yr</option>
+        #end for
+	    <option selected>-Select year-</option>
+        </select>
+        </p>
+      
+      </div>   <!-- end id "navbar" -->
+ 
+        <div id="plots">
+          <img src="daytempdew.png"   alt="temperatures" />
+          <img src="dayBaseball.png"  alt="baseball" />
+          <img src="daytempchill.png" alt="heatchill" />
+          <img src="dayrain.png"      alt="rain" />
+          <img src="daywind.png"      alt="wind" />
+          <img src="daybarometer.png" alt="barometer"/>
+          <img src="dayinside.png"    alt="Inside" />
+          <img src="dayhumidity.png"   alt="Humidity" />
+          #if $day.radiation.has_data
+          <img src="dayradiation.png" alt="Radiation" />
+          #end if
+          #if $day.rxCheckPercent.has_data
+          <img src="dayrx.png"        alt="day rx percent"/>
+          #end if
+<!--
+          #if $day.extraTemp1.has_data
+          <img src="dayecowitt.png"      alt="Ecowitt Temperatures" />
+          #end if
+-->
+          <img src="daySensorStatus.png"      alt="Sensor Status" />
+<!-- superseded by mem extension
+          <img src="dayMem.png"      alt="Memory" />
+-->
+<!-- not updated to v3
+          <img src="dayLoad.png"      alt="Load" />
+-->
+          <img src="daywindvec.png"   alt="Wind Vector" />
+          <img src="daywinddir.png"   alt="Hi Wind" />
+          <img src="daywindrose.png"   alt="Wind Rose" />
+        </div> <!-- End id "plots" -->
+
+      </div> <!--End class "stats_group" -->
+
+      </div> <!-- End id "content" -->
+
+    </div>
+
+    ## Include the Google Analytics code if the user has supplied an ID:
+    #if $Extras.has_key('googleAnalyticsId')
+    <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+        try{
+            var pageTracker = _gat._getTracker("$Extras.googleAnalyticsId");
+            pageTracker._trackPageview();
+        } catch(err) {}
+    </script>
+    #end if
+
+
+<style>
+body{padding:0;margin:0;background:LightGrey;}
+</style>
+</head>
+
+	</div>
+
+</body>
+</html>
+
+

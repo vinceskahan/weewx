@@ -1,0 +1,22 @@
+2.4 2022-0827
+* use current gauge.min.js, no old gauge.js or RGraph.js any more
+2.3 2022-0824
+* general cleanup, change 'pond' to 'ecowitt'
+2.2 2022-0208
+* more cleanup
+2.1 2022-0207
+* cleanup installer and source tree
+2.0 2021-1220
+* overlay rain onto image
+* use MQTTsubscribe for extraTemp1+2 rather than custom extension
+1.2 2015-0804
+* static image rather than security-scary flash link
+1.1 2015-0731
+* add updated get-pi-temps.py code that outputs json
+1.0 2015-0309
+* add code/example/edits to read remote raspi temps
+0.2 2015-0301
+* update to hand-edits
+* add alltime page and hooks
+0.1 2014-1206
+* original based on mwall forecast example

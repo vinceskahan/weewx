@@ -1,0 +1,11 @@
+This is the upstream weewx extension code from wjcarpenter on gitlab
+https://gitlab.com/wjcarpenter/bme280wx/-/archive/master/bme280wx-master.zip
+
+Any credit for this cool extension goes to wjcarpenter
+
+This appears to be their version as of May 27 2020, which still works for me
+today in mid 2025.
+
+This is copied here for safekeeping just to have all the pieces together
+and for disaster recovery purposes.
+

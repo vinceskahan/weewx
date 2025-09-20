@@ -1,0 +1,34 @@
+
+# this maps host 8888 to nginx 80 for webserver access
+#
+# build and run: docker compose up -d weewx_d13
+#
+
+services:
+
+  weewx_d13:
+    tty: true
+    build: /var/tmp/build/weewx_d13
+    container_name: weewx-pip
+    image: weewx-pip:5.1.0
+    depends_on:
+      - weewx_nginx_d13
+    volumes:
+      - /mnt/weewx/html_d13:/home/weewx/weewx-data/public_html
+      - /mnt/weewx/archive_d13:/home/weewx-data/archive
+
+  weewx_nginx_d13:
+    image: nginx:1.29.1
+    container_name: weewx_nginx_d13pip
+    ports:
+      - "8888:80"
+    volumes:
+      - /mnt/weewx/html_d13:/usr/share/nginx/html
+
+
+#--- notes ---
+# permissions are ugh 
+#  - the container runs as weewx:weewx uid/gid=1234
+#  - so mkdir /mnt/weewx and set it to match
+#    before starting the containers so permissions
+#    permit writing into there

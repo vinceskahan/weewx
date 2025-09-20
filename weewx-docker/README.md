@@ -1,11 +1,24 @@
 
-## Run weewx under Docker
+```
+Dockerfile and docker compose file to build/start
+a pair of weewx and nginx containers based on a 
+weewx pip installation
 
-This repo provides a Dockerfile for building weewx in simulator mode plus the Belchertown skin with some other items installed in some cases. See the Dockerfile on the appropriate branch for details.
+weewx-pip:5.1.0 built image size is 174 MB
+nginx:1.29.1 upstream image size is 192 MB
 
-The docker-compose.yml file will bring up a matching nginx container and listen on a port mapped to the Docker host.  See the docker-compose.yml file for details.
+Usual commands apply
+=====================
+docker compose up -d
+docker compose down
+docker ps -a
+docker images -a
 
-### Why is this branch empty
-
-I've refactored to put os-specific implementations on their own branch.  Set yourself to the appropriate branch to poke around a bit.
-
+ONE TIME SETUP REQUIRED
+=======================
+  - the container runs as weewx:weewx uid/gid=1234
+  - so create a user/group to match on the host
+    and mkdir /mnt/weewx and set it the same
+    before starting the containers so permissions
+    permit writing into there
+```

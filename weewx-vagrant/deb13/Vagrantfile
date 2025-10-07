@@ -1,0 +1,119 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+#==========================================
+#           start editing here             
+#==========================================
+
+#
+# the vagrant box and vm settings
+#
+BOX_BASE          = "bento/debian-13.0"  # required
+BOX_RAM           = "1024"               # required
+CHECK_BOX_VERSION = false                # required - set true to check for base box version
+
+#
+# whether/how to sync runtime host folder to a vm directory
+#
+SYNCH_VAGRANT_DIR    = "1"              # optional, comment it out to skip this
+SYNCHED_FOLDER_HOST  = "."              # required if SYNC_VAGRANT_DIR defined
+SYNCHED_FOLDER_GUEST = "/vagrant"       # required if SYNC_VAGRANT_DIR defined
+
+#
+# how to install weewx
+#
+INSTALL_WEEWX          = "1"                       # 1 to install, 0 to skip
+WEEWX_INSTALL_METHOD   = "pip"                     # <======= dpkg or pip, required if INSTALL_WEEWX is set
+WEEWX_DPKG_PROVISIONER = "provision-weewx-dpkg.sh" # to install via dpkg
+WEEWX_PIP_PROVISIONER  = "provision-weewx-pip.sh"  # to install via pip
+
+#
+# unconfigured belchertown skin
+#
+INSTALL_BELCHERTOWN            = "0"                         # optional
+WEEWX_BELCHERTOWN_PROVISIONER  = "provision-belchertown.sh"  # required if INSTALL_BELCHERTOWN is enabled
+
+#
+# unconfigured gw1000 ecowitt driver
+#
+INSTALL_GW1000            = "0"                   # optional
+WEEWX_GW1000_PROVISIONER  = "provision-gw1000.sh" # required if INSTALL_GW1000 is enabled
+
+#
+# nginx is installed via the weewx provisioners
+#  - optionally set a host port to view the weewx web on
+#  - important: do not use WEB_HOST=80, as this host uses it for other things
+#
+FORWARD_WEB_SERVER = "1"                # 1 to enable, 0 to skip
+FORWARD_WEB_GUEST  = "80"               # required if FORWARD_WEB_SERVER defined
+FORWARD_WEB_HOST   = "8888"             # required if FORWARD_WEB_SERVER defined
+
+#
+# sometimes we want git and git-prompt installed and configured
+#
+SETUP_GIT_USER   = "0"                                     # 1 to set up, 0 to skip
+GIT_USER_NAME    = "Vince Skahan"                          # required if SETUP_GIT_USER defined
+GIT_USER_EMAIL   = "vince@skahan.net"                      # required if SETUP_GIT_USER defined
+GIT_PROMPT_PROVISIONER_SCRIPT = "provision-git-prompt.sh"  # optional, runs if SETUP_GIT_USER defined
+
+#==========================================
+#            stop editing here             
+#==========================================
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = BOX_BASE
+
+  HOSTNAME = "weewx-" + WEEWX_INSTALL_METHOD
+
+  config.vm.box_check_update = CHECK_BOX_VERSION
+  config.vm.hostname = HOSTNAME
+  
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = BOX_RAM
+    vb.name = HOSTNAME
+    vb.check_guest_additions = false
+  end
+
+  # forward the web ports to the host os
+  if FORWARD_WEB_SERVER == "1"
+    config.vm.network "forwarded_port", guest: FORWARD_WEB_GUEST, host: FORWARD_WEB_HOST
+  end
+
+  # optionally set up a synched folder to this directory from the guest
+  if defined? SYNC_VAGRANT_DIR
+    config.vm.synced_folder SYNCHED_FOLDER_HOST, SYNCHED_FOLDER_GUEST
+  end
+
+  # set up weewx
+  if INSTALL_WEEWX == "1"
+    if WEEWX_INSTALL_METHOD == "dpkg"
+      config.vm.provision :shell, path: WEEWX_DPKG_PROVISIONER, privileged: false
+    end
+    if WEEWX_INSTALL_METHOD == "pip"
+      config.vm.provision :shell, path: WEEWX_PIP_PROVISIONER, privileged: false
+    end
+    if INSTALL_BELCHERTOWN == "1"
+      config.vm.provision :shell, path: WEEWX_BELCHERTOWN_PROVISIONER, privileged: false
+    end
+    if INSTALL_GW1000 == "1"
+      config.vm.provision :shell, path: WEEWX_GW1000_PROVISIONER, privileged: false
+    end
+  end
+
+  # optionally set up for using git within the vm
+  if SETUP_GIT_USER == "1"
+    if defined? GIT_PROMPT_PROVISIONER_SCRIPT
+      config.vm.provision :shell, path: GIT_PROMPT_PROVISIONER_SCRIPT, privileged: false
+    end
+    config.vm.provision "shell", inline: <<-SHELL
+      echo "-----------------------------------------"
+      echo " setting up git config global variables"
+      echo "-----------------------------------------"
+      git config --global user.email GIT_USER_NAME
+      git config --global user.name  GIT_USER_EMAIL
+    SHELL
+  end
+
+end
+

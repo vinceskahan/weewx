@@ -11,6 +11,7 @@
 BOX_BASE          = "bento/debian-13.0"  # required
 BOX_RAM           = "1024"               # required
 CHECK_BOX_VERSION = false                # required - set true to check for base box version
+UPDATE_ALL_PKGS   = "0"                  # required - whether to apt update over base box
 
 #
 # whether/how to sync runtime host folder to a vm directory
@@ -38,6 +39,12 @@ WEEWX_BELCHERTOWN_PROVISIONER  = "provision-belchertown.sh"  # required if INSTA
 #
 INSTALL_GW1000            = "0"                   # optional
 WEEWX_GW1000_PROVISIONER  = "provision-gw1000.sh" # required if INSTALL_GW1000 is enabled
+
+#
+# unconfigured MQTTSubscribe driver/extension
+#
+INSTALL_MQTTSUBSCRIBE            = "0"                          # optional
+WEEWX_MQTTSUBSCRIBE_PROVISIONER  = "provision-mqttsubscribe.sh" # required if INSTALL_GW1000 is enabled
 
 #
 # nginx is installed via the weewx provisioners
@@ -85,6 +92,17 @@ Vagrant.configure("2") do |config|
     config.vm.synced_folder SYNCHED_FOLDER_HOST, SYNCHED_FOLDER_GUEST
   end
 
+  # optionally upgrade all packages to current
+  if UPDATE_ALL_PKGS == "1"
+    config.vm.provision "shell", inline: <<-SHELL
+      echo "-----------------------------------------"
+      echo " updating all packages"
+      echo "-----------------------------------------"
+      apt update
+      apt upgrade -y
+    SHELL
+  end
+
   # set up weewx
   if INSTALL_WEEWX == "1"
     if WEEWX_INSTALL_METHOD == "dpkg"
@@ -98,6 +116,9 @@ Vagrant.configure("2") do |config|
     end
     if INSTALL_GW1000 == "1"
       config.vm.provision :shell, path: WEEWX_GW1000_PROVISIONER, privileged: false
+    end
+    if INSTALL_MQTTSUBSCRIBE == "1"
+      config.vm.provision :shell, path: WEEWX_MQTTSUBSCRIBE_PROVISIONER, privileged: false
     end
   end
 

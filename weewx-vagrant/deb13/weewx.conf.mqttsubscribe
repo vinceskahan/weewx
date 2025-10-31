@@ -1,0 +1,295 @@
+##############################################################################
+#
+# This is an example section mapping ecowitt MQTT payload to weewx db items
+# for hardware consisting of:
+#
+# GW1200 gateway running firmware V1.4.0
+# WH32 outside t+h sensor
+# WH31 additional inside t+h sensors (id 1-5)
+# WH51 soil moisture sensor
+# WH34S soil temperature sensor
+# WH40BH tipping rain gauge set as primary rain sensor
+# WS85 haptic/piezo rain/wind sensor set a secondary wind sensor
+#
+# items marked 'FIXME' still need to be mapped to weewx db elements or ignored
+#
+# this configuration ignores by default to be able to handle future firmware
+# updates that add new MQTT payload content, but also is set to stop weewd
+# on validation errors to handle typos, duplicate items, etc. that might be
+# later added in by user error
+#
+# this example does no use tls nor MQTT username/password although both are
+# supported by the driver
+#
+
+[MQTTSubscribeDriver]
+    stop_on_validation_errors = true
+    driver = user.MQTTSubscribe
+    host = 192.168.1.69
+    port = 1883
+    keepalive = 60
+
+    # MQTT broker not password protected
+    username = None
+    password = None
+
+    binding = loop
+
+    logging_level = ERROR   # suppress 'very' verbose logging for each loop received
+
+    # no tls here
+    [[tls]]
+        enable = false
+        ca_certs = ""
+        certfile = None
+        certs_required = required
+        ciphers = None
+        keyfile = None
+        tls_version = tlsv12
+
+    [[topics]]
+        unit_system = US
+        [[[GW1200]]]
+            subscribe = True
+            ignore = True
+            [[[[message]]]]
+                type = keyword
+                keyword_delimiter = &
+
+            #-------------------------------
+            # header we ignore
+            #-------------------------------
+            #
+            # PASSKEY=68ED8E69B59F5B11ED703756B8A264A8
+            # stationtype=GW1200B_V1.4.0
+            # runtime=782358
+            # heap=97992
+            # dateutc=2025-10-09+18%3A45%3A31
+            # dns_err_cnt=0
+            # cdnflg=16
+            # freq=915M
+            # model=GW1200B
+            # interval=60
+            #
+
+            #-------------------------------
+            # gateway
+            #-------------------------------
+            # tempinf=68.90
+            # humidityin=54
+            # baromrelin=29.627
+            # baromabsin=30.012
+            #-------------------------------
+
+            [[[[tempinf]]]]
+                name = inTemp
+                ignore = False
+            [[[[humidityin]]]]
+                name = inHumid
+                ignore = False
+            [[[[baromabsin]]]]
+                name = pressure
+                ignore = False
+            [[[[baromrelin]]]]
+                name = barometer
+                ignore = False
+
+            #-------------------------------
+            # outside t+h
+            #-------------------------------
+            # tempf=53.78
+            # humidity=89
+            # vpd=0.046    # vapor pressure deficit (ignore)
+            # wh26batt=1   # actually a wh32
+            #
+            # battery 0=ok
+            #-------------------------------
+
+            [[[[tempf]]]]
+                name = outTemp
+                ignore = False
+
+            [[[[humidity]]]]
+                name = outHumid
+                ignore = False
+
+            [[[[wh26batt]]]]
+                name = FIXME1_WH26BATT
+                ignore = False
+
+            #-------------------------------
+            # inside t+h
+            #-------------------------------
+            # temp1f=70.52
+            # humidity1=53
+            # batt1=0
+            #
+            # temp2f=67.46
+            # humidity2=54
+            # batt2=0
+            #
+            # temp3f=67.28
+            # humidity3=57
+            # batt3=0
+            #
+            # temp4f=70.16
+            # humidity4=58
+            # batt4=0
+            #
+            # temp5f=56.84
+            # humidity5=84
+            # batt5=0
+            #
+            # battery 0=ok
+            #-------------------------------
+
+            [[[[temp1f]]]]
+                name = extraTemp1
+                ignore = False
+            [[[[humidity1]]]]
+                name = extraHumid1
+                ignore = False
+            [[[[batt1]]]]
+                name = extraBattery1
+                ignore = False
+
+            [[[[temp2f]]]]
+                name = extraTemp2
+                ignore = False
+            [[[[humidity2]]]]
+                name = extraHumid2
+                ignore = False
+            [[[[batt2]]]]
+                name = extraBattery2
+                ignore = False
+
+            [[[[temp3f]]]]
+                name = extraTemp3
+                ignore = False
+            [[[[humidity3]]]]
+                name = extraHumid3
+                ignore = False
+            [[[[batt3]]]]
+                name = extraBattery3
+                ignore = False
+
+            [[[[temp4f]]]]
+                name = extraTemp4
+                ignore = False
+            [[[[humidity4]]]]
+                name = extraHumid4
+                ignore = False
+            [[[[batt4]]]]
+                name = extraBattery4
+                ignore = False
+
+            [[[[temp5f]]]]
+                name = extraTemp5
+                ignore = False
+            [[[[humidity5]]]]
+                name = extraHumid5
+                ignore = False
+            [[[[batt5]]]]
+                name = extraBattery5
+                ignore = False
+
+            #-------------------------------
+            # tipping rain
+            #-------------------------------
+            # rainratein=0.000    (ignore)
+            # eventrainin=0.000
+            # hourlyrainin=0.000  (ignore)
+            # dailyrainin=0.004   (ignore) this is one tip in inches, 0.1mm = 0.00393701 in
+            # weeklyrainin=0.004  (ignore)
+            # monthlyrainin=0.354 (ignore)
+            # yearlyrainin=0.646  (ignore)
+            # wh40batt=1.5
+            #
+            # battery is AA voltage
+            #-------------------------------
+
+            [[[[t_rain]]]]
+                name = rain
+                ignore = False
+
+            [[[[wh40batt]]]]
+                name = rainBatteryStatus
+                ignore = False
+
+            #-------------------------------
+            # haptic/piezo wind/rain
+            #-------------------------------
+            # winddir=77
+            # windspeedmph=0.00
+            # windgustmph=1.12  (ignore)
+            # maxdailygust=3.80 (ignore)
+            #
+            # wh85batt=3.28
+            # ws85_cap_volt=3.8
+            # ws85_ver=116      (ignore)
+            #
+            # rrain_piezo=0.000 (ignore)
+            # erain_piezo=0.000 (ignore)
+            # hrain_piezo=0.000 (ignore)
+            # drain_piezo=0.016 (ignore)
+            # wrain_piezo=0.016 (ignore)
+            # mrain_piezo=0.327 (ignore)
+            # yrain_piezo=0.697 (ignore)
+            # srain_piezo=0     (ignore)
+            #
+            # batteries are voltage
+            #   2xAA for sensor
+            #   uncertain range for capacitor
+            #-------------------------------
+
+            [[[[winddir]]]]
+                name = windDir
+                ignore = False
+            [[[[windspeedmph]]]]
+                name = windSpeed
+                ignore = False
+            [[[[windgustmph]]]]
+                name = windGust
+                ignore = False
+
+            [[[[wh85batt]]]]
+                name = windBattery
+                ignore = False
+            [[[[ws85_cap_volt]]]]
+                name = FIXME2_WH85CAP_VOLT
+                ignore = False
+
+            #-------------------------------
+            # soil moisture
+            #
+            # soilmoisture1=55
+            # soilad1=275       (ignore)
+            # soilbatt1=1.2
+            #
+            # battery is AA voltage
+            #-------------------------------
+
+            [[[[soilmoisture1]]]]
+                name = soilMoist1
+                ignore = False
+            [[[[soilbatt1]]]]
+                name = FIXME3_SOILBATT1
+                ignore = False
+
+            #-------------------------------
+            # soil temperature
+            #
+            # tf_ch1=50.7
+            # tf_batt1=1.36
+            #
+            # battery is AA voltage
+            #-------------------------------
+
+            [[[[tf_ch1]]]]
+                name = soilTemp1
+                ignore = False
+            [[[[tf_batt1]]]]
+                name = FIXME4_TF_BATT1
+                ignore = False
+
+##############################################################################

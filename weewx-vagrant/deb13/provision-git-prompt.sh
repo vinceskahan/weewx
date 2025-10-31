@@ -4,6 +4,9 @@ echo "-----------------------------------------"
 echo " downloading and configuring git-prompt"
 echo "-----------------------------------------"
 
+sudo apt update
+sudo apt install -y git
+
 URL="https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh"
 wget ${URL}
 

@@ -5,13 +5,27 @@ many errors in historical hi/low, noaa reports, etc.
 
 To find these records:
 
-echo "SELECT * FROM archive WHERE (windSpeed > 112);" | sqlite3 mydb.sdb
-echo "SELECT * FROM archive WHERE (windGust  > 112);" | sqlite3 mydb.sdb
+echo "SELECT datetime(maxtime,'unixepoch','localtime'),dateTime,windSpeed FROM archive WHERE (windSpeed > 113);" | sqlite3 mydb.sdb
+echo "SELECT datetime(maxtime,'unixepoch','localtime'),dateTime,windSpeed FROM archive WHERE (windGust  > 112);" | sqlite3 mydb.sdb
+
+echo "SELECT datetime(maxtime,'unixepoch','localtime'),dateTime,max FROM archive_windSpeed WHERE (max  > 112);" | sqlite3 mydb.sdb
+echo "SELECT datetime(maxtime,'unixepoch','localtime'),dateTime,max FROM archive_windGust  WHERE (max  > 112);" | sqlite3 mydb.sdb
 
 To null out these fields:
 
-echo "UPDATE archive SET windSpeed=0 WHERE (windSpeed > 112);" | sqlite3 mydb.sdb
-echo "UPDATE archive SET windGust=0  WHERE (windGust  > 112);" | sqlite3 mydb.sdb
+echo "UPDATE archive SET windSpeed=NULL WHERE (windSpeed > 112);" | sqlite3 mydb.sdb
+echo "UPDATE archive SET windGust=NULL  WHERE (windGust  > 112);" | sqlite3 mydb.sdb
 
+Then:
+
+weectl database drop-daily
+weectl database rebuild-daily
+
+or just do a specified date or range of dates...
+
+weectl database rebuild-daily
+            [[--date=YYYY-mm-dd] | [--from=YYYY-mm-dd] [--to=YYYY-mm-dd]]
+            [--config=FILENAME] [--binding=BINDING-NAME]
+            [--dry-run] [-y]
 
 ==> as always, work off a temporary copy of your db just in case

@@ -5,13 +5,13 @@
 #### Get the last 20 records from the archive, for rain info only, most recent first:
 
     echo "select datetime(dateTime,'unixepoch','localtime'),dateTime,rain,rainRate 
-       from archive order by rowid desc limit 20;" | sqlite3 weewx.sdb
+       FROM archive ORDER BY rowid DESC LIMIT 20;" | sqlite3 weewx.sdb
 
 From this, get the dateTime value of the most recent one, which is seconds
   since the epoch.  The localtime representation is there to hopefully make this a little easier.
 
 Note: this prints in 'newest at the top' reverse order, so be careful in the next step.  See the 'desc(ending)' ?
-  To print ascending order change 'desc' above to 'asc'.
+  To print ascending order change 'desc' above to 'asc' or omit it.
   
 #### Set the rain to 0.01 inches for times in-between two times
 
@@ -29,3 +29,5 @@ Note: this prints in 'newest at the top' reverse order, so be careful in the nex
 
     echo "update archive_day_rain set sum=1.07 where dateTime=1476342000;" | 
        sqlite3 weewx.sdb
+
+    or better yet 'weectl database rebuild-daily --date YYYY-MM-DD'

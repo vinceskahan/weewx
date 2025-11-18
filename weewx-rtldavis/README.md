@@ -22,17 +22,30 @@ Notes:
 
  - the 'install weewx' variable calls a different standalone script that
        installs and configures nginx and integrates the two. Again this
-       does the 'pip' installation method for weewx
+       does the 'pip' installation method for weewx.
+
+       If you have never run this, I'd strongly recommend that you run this
+       script multiple times in steps, setting only one item = 1 in the variables
+       at the top of the file.  Do it step-by-step one piece at a time.  It will help
+       you in debugging.
+
+       If you set everything = 1 and something in the middle blows up, it is entirely
+       probable that following steps will fail too.
 
  - code assumes it is run as user 'pi' on a raspi of course, which is
-       hardcoded throughout.
+       hardcoded throughout.  You can set variable WEEUSER in the script
+       to set it to another user
 
  - since go1.15 is no longer available in debian12 default repos, this script
-       now installs a 'local' copy of go under /home/pi/go/bin and also
+       now installs a 'local' copy of go under /home/${WEEUSER}/go/bin and also
        installs rtldavis there.
 
  - the default weewx.conf that this installs has 'very' (like 'VERY') verbose
        logging enabled for rtldavis.  You'll almost certainly want to dial that
        back after you get things working.  See the driver section in weewx.conf
        for details.
-        
+       
+  - I do see some complaints from the weewx 5.2.0 extension installer while installing
+       Luc's rtldavis.py script but at quick glance it seems ok (hopefully).
+       This showed up in a debian13 vagrant installation.  I do not recall this happening
+       with previous weewx versions or os versions on a raspberry pi. 

@@ -8,7 +8,7 @@
 #
 # last modified
 #   2025-1117 - moved the install-v5pip.sh script in github
-#               added WEEUSER variable to run under users other than 'pi'
+#               added pi variable to run under users other than 'pi'
 #   2024-1002 - no 1.15 dpkg in deb12, install local go manually
 #   2024-0323 - update to v5 weewx, pin golang version to 1.15
 #   2022-0722 - original
@@ -28,13 +28,14 @@
 INSTALL_PREREQS=0          # package prerequisites to build the software
 INSTALL_WEEWX=0            # weewx itself
 INSTALL_LIBRTLSDR=0        # librtlsdr software
-INSTALL_RTLDAVIS=0         # weewx rtldavis driver
+INSTALL_RTLDAVIS=1         # weewx rtldavis driver
 RUN_WEEWX_AT_BOOT=0        # enable weewx in systemctl to startup at boot
 
-WEEUSER="pi"        # set to 'vagrant' for typical vagrant installations
-                    # or to whichever user you are running this as
-
-                    # ==> REMINDER - this expects a pip installation <==
+#----------------------------------------------
+# ==> REMINDER - this expects a pip installation <==
+# ==> REMINDER - this expects a pip installation <==
+# ==> REMINDER - this expects a pip installation <==
+# ==> REMINDER - this expects a pip installation <==
 #----------------------------------------------
 #
 # install required packages to enable building/running the software suite
@@ -99,7 +100,7 @@ then
     sudo mv /tmp/udevrules /etc/udev/rules.d/20.rtsdr.rules
 
     # get librtlsdr
-    cd /home/${WEEUSER}
+    cd /home/pi
     if [ -d librtlsdr ]
     then
       rm -rf librtlsdr
@@ -128,14 +129,14 @@ then
     then
         echo ''                                                   >> ~/.profile
         echo '### CONFIGURE_GO_SETTINGS for rtdavis installation' >> ~/.profile
-        echo GOPATH=/home/${WEEUSER}/go >> ~/.profile
-        echo GOROOT=/home/${WEEUSER}/sdk/go1.15 >> ~/.profile
+        echo GOPATH=/home/pi/go >> ~/.profile
+        echo GOROOT=/home/pi/sdk/go1.15 >> ~/.profile
         export PATH=$PATH:$GOROOT/bin:$GOPATH/bin >> ~/.profile
     fi
 
     # for running here
-    GOPATH=/home/${WEEUSER}/go
-    GOROOT=/home/${WEEUSER}/sdk/go1.15
+    GOPATH=/home/pi/go
+    GOROOT=/home/pi/sdk/go1.15
     export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
     hash -r
 
@@ -147,11 +148,11 @@ then
     # the export PATH above 'might' work but we'll use full paths to be safe
 
     # install luc's code
-    /home/${WEEUSER}/go/bin/go1.15 get -v github.com/lheijst/rtldavis
+    /home/pi/go/bin/go1.15 get -v github.com/lheijst/rtldavis
     cd go/src/github.com/lheijst/rtldavis/
     git submodule init
     git submodule update
-    /home/${WEEUSER}/go/bin/go1.15 install -v .
+    /home/pi/go/bin/go1.15 install -v .
 
     # for US users, to test rtldavis, run:
     #    $GOPATH/bin/rtldavis -tf US
@@ -182,30 +183,32 @@ if [ "x${INSTALL_RTLDAVIS}" = "x1" ]
 then
     echo ".......installing rtldavis.........."
     echo "   activate venv"
-    source /home/${WEEUSER}/weewx-venv/bin/activate
+    source /home/pi/weewx-venv/bin/activate
     echo "   install extension"
     weectl extension install -y https://github.com/lheijst/weewx-rtldavis/archive/master.zip
+
     echo "   enable driver"
     weectl station reconfigure --driver=user.rtldavis --no-prompt
 
     # remove the template instruction from the config file
     echo "editing options..."
-    sudo sed -i -e s/\\[options\\]// /home/${WEEUSER}/weewx-data/weewx.conf
+    sudo sed -i -e s/\\[options\\]// /home/pi/weewx-data/weewx.conf
 
     # US frequencies and imperial units
     echo "editing US settings..."
     echo "  setting frequency"
     echo "  setting rain_bucket_type"
-    sed -i -e s:frequency\ =\ EU:frequency\ =\ US:             /home/${WEEUSER}/weewx-data/weewx.conf
-    sed -i -e s:rain_bucket_type\ =\ 1:rain_bucket_type\ =\ 0: /home/${WEEUSER}/weewx-data/weewx.conf
+    sed -i -e s:frequency\ =\ EU:frequency\ =\ US:             /home/pi/weewx-data/weewx.conf
+    sed -i -e s:rain_bucket_type\ =\ 1:rain_bucket_type\ =\ 0: /home/pi/weewx-data/weewx.conf
 
     # we install rtldavis to a different place than Luc so patch the "cmd =" line
     echo "changing path to rtldavis"
-    sed -i -e s:/home/${WEEUSER}/work/bin/rtldavis:/home/${WEEUSER}/go/bin/rtldavis: /home/${WEEUSER}/weewx-data/weewx.conf
+    sed -i -e s:/home/pi/work/bin/rtldavis:/home/pi/go/bin/rtldavis: /home/pi/weewx-data/weewx.conf
 
     # for very verbose logging of readings
     echo "editing debug..."
-    sed -i -e s:debug_rtld\ =\ 2:debug_rtld\ =\ 3:             /home/${WEEUSER}/weewx-data/weewx.conf
+    sed -i -e s:debug_rtld\ =\ 2:debug_rtld\ =\ 3:             /home/pi/weewx-data/weewx.conf
+
 else
     echo "...... INSTALL_LIBRTLSDR=0 - skipping ......"
 fi

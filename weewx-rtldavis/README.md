@@ -15,6 +15,22 @@ Usage - if you set the variables at the top of the script to '1' it will run tha
   Set to '0' or comment out to suppress running that block of code.  
   Hopefully it should be reasonably obvious.
 
+Installation Notes:
+===================
+
+This 'really' assumes it is running in a pip installation in /home/pi on a Raspberry Pi
+and will throw some errors during extension installation if you try to run as a different user.
+In that case you should verify the [Rtldavis] section in weewx.conf and especially the 
+'cmd' line at the top of that section.
+
+I tried to fake it in a vagrant installation by symlinking /home/pi -> /home/vagrant
+and that got everything installed, but the "cmd = " line in weewx.conf still needed
+hand editing for me (vagrant debian13 using weewx 5.2.0)
+
+I did not see this when running successfully on an actual raspberry pi with weewx 5.1.0
+but I cannot recall anymore if that was a debian12 or debian13 based os at that time.
+
+
 Notes:
 ======
  - this assumes you run v5 via the 'pip' installation mechanism.
@@ -44,8 +60,4 @@ Notes:
        logging enabled for rtldavis.  You'll almost certainly want to dial that
        back after you get things working.  See the driver section in weewx.conf
        for details.
-       
-  - I do see some complaints from the weewx 5.2.0 extension installer while installing
-       Luc's rtldavis.py script but at quick glance it seems ok (hopefully).
-       This showed up in a debian13 vagrant installation.  I do not recall this happening
-       with previous weewx versions or os versions on a raspberry pi. 
+

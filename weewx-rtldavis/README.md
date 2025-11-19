@@ -18,46 +18,35 @@ Usage - if you set the variables at the top of the script to '1' it will run tha
 Installation Notes:
 ===================
 
-This 'really' assumes it is running in a pip installation in /home/pi on a Raspberry Pi
-and will throw some errors during extension installation if you try to run as a different user.
-In that case you should verify the [Rtldavis] section in weewx.conf and especially the 
-'cmd' line at the top of that section.
+ - this requires that you run v5 via the 'pip' installation mechanism as user 'pi'
+       with home directory /home/pi. I will not support alternate weewx installation types.
 
-I tried to fake it in a vagrant installation by symlinking /home/pi -> /home/vagrant
-and that got everything installed, but the "cmd = " line in weewx.conf still needed
-hand editing for me (vagrant debian13 using weewx 5.2.0)
-
-I did not see this when running successfully on an actual raspberry pi with weewx 5.1.0
-but I cannot recall anymore if that was a debian12 or debian13 based os at that time.
-
-
-Notes:
-======
- - this assumes you run v5 via the 'pip' installation mechanism.
-       I'm not planning to support the dpkg variant with this repo.
-
- - the 'install weewx' variable calls a different standalone script that
-       installs and configures nginx and integrates the two. Again this
-       does the 'pip' installation method for weewx.
-
-       If you have never run this, I'd strongly recommend that you run this
-       script multiple times in steps, setting only one item = 1 in the variables
-       at the top of the file.  Do it step-by-step one piece at a time.  It will help
-       you in debugging.
+ - each set of steps has its individual INSTALL_XYZ variable at the top of the script
+      so you can run them step-by-step.  I would highly recommend doing this rather than
+      setting them all to '1' and running them all in one blast (and hoping).
 
        If you set everything = 1 and something in the middle blows up, it is entirely
        probable that following steps will fail too.
 
- - code assumes it is run as user 'pi' on a raspi of course, which is
-       hardcoded throughout.  You can set variable WEEUSER in the script
-       to set it to another user
-
  - since go1.15 is no longer available in debian12 default repos, this script
-       now installs a 'local' copy of go under /home/${WEEUSER}/go/bin and also
+       now installs a 'local' copy of go under /home/pi/go/bin and also
        installs rtldavis there.
+
+ - this assumes it is run as user 'pi' on a raspi and installs code, per Luc's upstream,
+      into odd locations such as /usr/local/bin and other locations.  I didn't battle
+      trying to make where it puts things more sensible (to me)
 
  - the default weewx.conf that this installs has 'very' (like 'VERY') verbose
        logging enabled for rtldavis.  You'll almost certainly want to dial that
        back after you get things working.  See the driver section in weewx.conf
        for details.
+
+Python Version Notes:
+=====================
+
+ - with debian trixie the underlying python version has changed warnings related to
+      compiling regular expressions, so you will see syntax warnings when installing
+      the actual rtldavis.py driver.  You can ignore them for now.  If you want to 
+      patch your rtldavis.py file, see https://groups.google.com/g/weewx-user/c/-KOh89ur7Y8
+      for how to do so.  There might be more discussion there as time goes by.
 

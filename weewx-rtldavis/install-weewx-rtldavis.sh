@@ -210,7 +210,7 @@ then
     sed -i -e s:debug_rtld\ =\ 2:debug_rtld\ =\ 3:             /home/pi/weewx-data/weewx.conf
 
 else
-    echo "...... INSTALL_LIBRTLSDR=0 - skipping ......"
+    echo "...... INSTALL_RTLDAVIS=0 - skipping ......"
 fi
 
 #-----------------------------------------------

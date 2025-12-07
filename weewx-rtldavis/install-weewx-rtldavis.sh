@@ -7,11 +7,19 @@
 # with a rtl-sdr.com RTL2832U dongle
 #
 # last modified
+#   2025-1207 - use os golang so no need for 1.15 any more (tested on 1.24)
 #   2025-1117 - moved the install-v5pip.sh script in github
 #               added pi variable to run under users other than 'pi'
 #   2024-1002 - no 1.15 dpkg in deb12, install local go manually
 #   2024-0323 - update to v5 weewx, pin golang version to 1.15
 #   2022-0722 - original
+#
+# note: you might be able to install go-1.15 from dpkg
+#       from old debian archives if you add a repo to /etc/apt/sources.list
+#       ala:
+#          # this is an old debian repo
+#          deb http://ftp.de.debian.org/debian bullseye main 
+#       then call /usr/lib/go-1.15/bin/go specifically in your scripts
 #
 #----------------------------------------------
 # credits - thanks to another weewx user noticing that golang-1.15 still works
@@ -27,8 +35,9 @@
 
 INSTALL_PREREQS=0          # package prerequisites to build the software
 INSTALL_WEEWX=0            # weewx itself
-INSTALL_LIBRTLSDR=0        # librtlsdr software
-INSTALL_RTLDAVIS=1         # weewx rtldavis driver
+INSTALL_LIBRTLSDR=0        # librtlsdr software                  #TODO - wants /home/pi
+BUILD_RTLDAVIS=0           # build the go binary of rtldavis
+INSTALL_RTLDAVIS=0         # weewx rtldavis driver
 RUN_WEEWX_AT_BOOT=0        # enable weewx in systemctl to startup at boot
 
 #----------------------------------------------
@@ -67,15 +76,15 @@ fi
 if [ "x${INSTALL_WEEWX}" = "x1" ]
 then
   # 2025-1117 - reorganized this github set of repos
-  wget -q0 - https://raw.githubusercontent.com/vinceskahan/weewx/refs/heads/main/weewx-pipinstall/install-v5pip.sh | bash
-sudo systemctl stop weewx
+  wget -qO - https://raw.githubusercontent.com/vinceskahan/weewx/refs/heads/main/weewx-pipinstall/install-v5pip.sh | bash
+  sudo systemctl stop weewx
 else
     echo "...... INSTALL_WEEWX=0 - skipping ......"
 fi
 
 #-----------------------------------------------
 #
-# install rtldavis (ref:https://github.com/lheijst/rtldavis)
+# build and install librtlsdr from scratch
 #
 # changes - on debian-11 raspi we set the cmake option below to =OFF
 #           rather than using the instructions in the older link above so that
@@ -116,43 +125,66 @@ then
     make
     sudo make install
     sudo ldconfig
+else
+    echo "...... INSTALL_LIBRTLSDR=0 - skipping ......"
+fi
 
-    # use the system go to install the proper local version of go
+#-----------------------------------------------
+#
+# build rtldavis (ref:https://github.com/lheijst/rtldavis)
+#
+
+if [ "x${BUILD_RTLDAVIS}" = "x1" ]
+then
+
+##    # use the system go to install the proper local version of go
+#    cd
+#    go install golang.org/dl/go1.15@latest
+#    go/bin/go1.15 download
+#
+#    # add to .profile for future
+#    #    'source ~/.profile' to catch up interactively
+#    GO_INFO_FOUND=`grep CONFIGURE_GO_SETTINGS ~/.profile | wc -l | awk '{print $1}'`
+#    if [ "x${GO_INFO_FOUND}" = "x0"  ]
+#    then
+#        echo ''                                                   >> ~/.profile
+#        echo '### CONFIGURE_GO_SETTINGS for rtdavis installation' >> ~/.profile
+#        echo GOPATH=/home/pi/go >> ~/.profile
+#        echo GOROOT=/home/pi/sdk/go1.15 >> ~/.profile
+#        export PATH=$PATH:$GOROOT/bin:$GOPATH/bin >> ~/.profile
+#    fi
+#
+#    # for running here
+#    GOPATH=/home/pi/go
+#    GOROOT=/home/pi/sdk/go1.15
+#    export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+#    hash -r
+#
+#    # we pin golang to < 1.16 so Luc's instructions still work ok for
+#    # grabbing his code and building the resulting rtldavis binary
+#    # from source the old way.  Note however that this does not link that
+#    # version into the normal $PATH, so you need to call it with its full path
+#    #
+#    # the export PATH above 'might' work but we'll use full paths to be safe
+#    #
+#    ## install luc's code
+#    ## /home/pi/go/bin/go1.15 get -v github.com/lheijst/rtldavis
+#    ## cd go/src/github.com/lheijst/rtldavis/
+#    ## git submodule init
+#    ## git submodule update
+#    ## /home/pi/go/bin/go1.15 install -v .
+#
+    # this uses current go syntax from deb13 (1.24 at this writing)
     cd
-    go install golang.org/dl/go1.15@latest
-    go/bin/go1.15 download
-
-    # add to .profile for future
-    #    'source ~/.profile' to catch up interactively
-    GO_INFO_FOUND=`grep CONFIGURE_GO_SETTINGS ~/.profile | wc -l | awk '{print $1}'`
-    if [ "x${GO_INFO_FOUND}" = "x0"  ]
-    then
-        echo ''                                                   >> ~/.profile
-        echo '### CONFIGURE_GO_SETTINGS for rtdavis installation' >> ~/.profile
-        echo GOPATH=/home/pi/go >> ~/.profile
-        echo GOROOT=/home/pi/sdk/go1.15 >> ~/.profile
-        export PATH=$PATH:$GOROOT/bin:$GOPATH/bin >> ~/.profile
-    fi
-
-    # for running here
-    GOPATH=/home/pi/go
-    GOROOT=/home/pi/sdk/go1.15
-    export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
-    hash -r
-
-    # we pin golang to < 1.16 so Luc's instructions still work ok for
-    # grabbing his code and building the resulting rtldavis binary
-    # from source the old way.  Note however that this does not link that
-    # version into the normal $PATH, so you need to call it with its full path
-    #
-    # the export PATH above 'might' work but we'll use full paths to be safe
-
-    # install luc's code
-    /home/pi/go/bin/go1.15 get -v github.com/lheijst/rtldavis
-    cd go/src/github.com/lheijst/rtldavis/
+    go install -v github.com/lheijst/rtldavis@latest
+    git clone https://github.com/lheijst/rtldavis go/src/lheijst/rtldavis
+    cd go/src/lheijst/rtldavis/
     git submodule init
     git submodule update
-    /home/pi/go/bin/go1.15 install -v .
+    go mod init
+    go mod tidy
+    go mod vendor
+    go install -v .
 
     # for US users, to test rtldavis, run:
     #    $GOPATH/bin/rtldavis -tf US
@@ -171,7 +203,7 @@ then
     # ref: https://forums.raspberrypi.com/viewtopic.php?t=81731
     #
 else
-    echo "...... INSTALL_LIBRTLSDR=0 - skipping ......"
+    echo "...... BUILD_RTLDAVIS=0 - skipping ......"
 fi
 
 #-----------------------------------------------
@@ -210,7 +242,7 @@ then
     sed -i -e s:debug_rtld\ =\ 2:debug_rtld\ =\ 3:             /home/pi/weewx-data/weewx.conf
 
 else
-    echo "...... INSTALL_LIBRTLSDR=0 - skipping ......"
+    echo "...... INSTALL_RTLDAVIS=0 - skipping ......"
 fi
 
 #-----------------------------------------------

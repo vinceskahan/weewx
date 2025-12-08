@@ -7,6 +7,7 @@
 # with a rtl-sdr.com RTL2832U dongle
 #
 # last modified
+#   2025-1208 - set GOPATH
 #   2025-1207 - use os golang so no need for 1.15 any more (tested on 1.24)
 #   2025-1117 - moved the install-v5pip.sh script in github
 #               added pi variable to run under users other than 'pi'
@@ -35,7 +36,7 @@
 
 INSTALL_PREREQS=0          # package prerequisites to build the software
 INSTALL_WEEWX=0            # weewx itself
-INSTALL_LIBRTLSDR=0        # librtlsdr software                  #TODO - wants /home/pi
+INSTALL_LIBRTLSDR=0        # librtlsdr software
 BUILD_RTLDAVIS=0           # build the go binary of rtldavis
 INSTALL_RTLDAVIS=0         # weewx rtldavis driver
 RUN_WEEWX_AT_BOOT=0        # enable weewx in systemctl to startup at boot
@@ -109,7 +110,7 @@ then
     sudo mv /tmp/udevrules /etc/udev/rules.d/20.rtsdr.rules
 
     # get librtlsdr
-    cd /home/pi
+    cd ${HOME}
     if [ -d librtlsdr ]
     then
       rm -rf librtlsdr
@@ -176,6 +177,7 @@ then
 #
     # this uses current go syntax from deb13 (1.24 at this writing)
     cd
+    GOPATH=${HOME}/go
     go install -v github.com/lheijst/rtldavis@latest
     git clone https://github.com/lheijst/rtldavis go/src/lheijst/rtldavis
     cd go/src/lheijst/rtldavis/

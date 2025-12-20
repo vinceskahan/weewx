@@ -5,9 +5,7 @@ FWIW, I found the rtldavis installation repos and instructions very difficult to
 and there are many pieces downloaded throughout the installation procedure from other
 upstream repositories.  Furthermore, there are edits needed if you a a US user.
 
-Usage - if you set the variables at the top of the script to '1' it will run that block. 
-  Set to '0' or comment out to suppress running that block of code.  
-  Hopefully it should be reasonably obvious.
+Usage - if you set the variables at the top of the script to '1' it will run that block.  Set to '0' or comment out to suppress running that block of code.  Hopefully it should be reasonably obvious.
 
 Contents:
 =========
@@ -21,20 +19,13 @@ Installation Notes:
 * Copy the two pieces to your ${HOME}
 * then run 'bash install-weewx-rtldavis.sh'
 
-```
-# note - the script does call sudo for installing things
-#        into /usr/local/bin, so you will need sudo to
-#        remove the src tree(s) afterward
-
-```
+Note - the script does call sudo for installing things into /usr/local/bin, so you will need sudo to remove the src tree(s) afterward
 
 Other notes:
 ============
 
  - this requires that you run v5 via the 'pip' installation mechanism as user 'pi'
        with home directory /home/pi. I will not support alternate weewx installation types.
-
-       While it installs in vagrant using user 'vagrant', whether it works or not is not tested.
 
  - each set of steps has its individual INSTALL_XYZ variable at the top of the script
       so you can run them step-by-step.  I would highly recommend doing this rather than

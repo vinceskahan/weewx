@@ -3,11 +3,10 @@
 # scripted install of weewx with rtldavis driver set to US units
 # this assumes a v5 pip installation of weewx in the paths below
 #
-# tested on debian-13 based Raspi OS
+# tested on debian-12 based Raspi OS
 # with a rtl-sdr.com RTL2832U dongle
 #
 # last modified
-#   2025-1220 - use previously downloaded sources from here
 #   2025-1208 - set GOPATH
 #   2025-1207 - use os golang so no need for 1.15 any more (tested on 1.24)
 #   2025-1117 - moved the install-v5pip.sh script in github
@@ -35,32 +34,12 @@
 #        so the default is all set to 0 here to permit that
 # 
 
-EXTRACT_SOURCES=0          # extract src.tgz into a src tree
 INSTALL_PREREQS=0          # package prerequisites to build the software
 INSTALL_WEEWX=0            # weewx itself
 INSTALL_LIBRTLSDR=0        # librtlsdr software
 BUILD_RTLDAVIS=0           # build the go binary of rtldavis
 INSTALL_RTLDAVIS=0         # weewx rtldavis driver
 RUN_WEEWX_AT_BOOT=0        # enable weewx in systemctl to startup at boot
-
-### IMPORTANT - THIS ASSUMES SOURCES ARE IN ${HOME}/src
-### IMPORTANT - THIS ASSUMES SOURCES ARE IN ${HOME}/src
-### IMPORTANT - THIS ASSUMES SOURCES ARE IN ${HOME}/src
-### IMPORTANT - THIS ASSUMES SOURCES ARE IN ${HOME}/src
-
-# extract src.tgz to ${HOME}/src
-if [ "x${EXTRACT_SOURCES}" = "x1" ]
-then
-    echo "...... EXTRACT_SOURCES=1 - running ......."
-    tar zxf src.tgz
-else
-    echo "...... EXTRACT_SOURCES=0 - skipping......."
-fi
-
-# fix up permissions since go is picky
-MYUSER=`id -un`
-MYGROUP=`id -gn`
-sudo chown -R ${MYUSER}:${MYGROUP} ${HOME}/src
 
 #----------------------------------------------
 # ==> REMINDER - this expects a pip installation <==
@@ -76,10 +55,9 @@ sudo chown -R ${MYUSER}:${MYGROUP} ${HOME}/src
 
 if [ "x${INSTALL_PREREQS}" = "x1" ]
 then
-    echo "...... INSTALL_PREREQS=1 - running ......."
+    echo ".......installing prereqs..........."
     sudo apt-get update 
     sudo apt-get -y install python3-configobj python3-pil python3-serial python3-usb python3-pip python3-ephem python3-cheetah
-    sudo apt-get -y install git cmake librtlsdr-dev golang
 else
     echo "...... INSTALL_PREREQS=0 - skipping ......"
 fi
@@ -99,7 +77,6 @@ fi
 if [ "x${INSTALL_WEEWX}" = "x1" ]
 then
   # 2025-1117 - reorganized this github set of repos
-  echo "...... INSTALL_WEEWX=1 - running ......."
   wget -qO - https://raw.githubusercontent.com/vinceskahan/weewx/refs/heads/main/weewx-pipinstall/install-v5pip.sh | bash
   sudo systemctl stop weewx
 else
@@ -121,7 +98,9 @@ fi
 
 if [ "x${INSTALL_LIBRTLSDR}" = "x1" ]
 then
-    echo "...... INSTALL_LIBRTLSDR=1 - running ......."
+    echo ".......installing librtlsdr........."
+    sudo apt-get -y install git cmake librtlsdr-dev golang
+
     # set up udev rules
     #
     # for my system with 'lsusb' output containing:
@@ -130,8 +109,17 @@ then
     echo 'SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838", GROUP="adm", MODE="0666", SYMLINK+="rtl_sdr"' > /tmp/udevrules
     sudo mv /tmp/udevrules /etc/udev/rules.d/20.rtsdr.rules
 
-    # install librtlsdr from previously downloaded sources
-    cd ${HOME}/src/librtlsdr
+    # get librtlsdr
+    cd ${HOME}
+    if [ -d librtlsdr ]
+    then
+      rm -rf librtlsdr
+    fi
+
+    # install librtlsdr
+    cd
+    git clone https://github.com/steve-m/librtlsdr.git librtlsdr
+    cd librtlsdr
     mkdir build
     cd build
     cmake ../ -DINSTALL_UDEV_RULES=OFF -DDETACH_KERNEL_DRIVER=ON
@@ -149,14 +137,56 @@ fi
 
 if [ "x${BUILD_RTLDAVIS}" = "x1" ]
 then
-    echo "...... BUILD_RTLDAVIS=1 - running ......."
 
-    # cd there
-    cd ${HOME}/src/rtldavis/src/lheijst/rtldavis
-
-    # build and install it
-    echo "....building and installing go binaries..."
-    sudo GOBIN=/usr/local/bin go install -v .
+##    # use the system go to install the proper local version of go
+#    cd
+#    go install golang.org/dl/go1.15@latest
+#    go/bin/go1.15 download
+#
+#    # add to .profile for future
+#    #    'source ~/.profile' to catch up interactively
+#    GO_INFO_FOUND=`grep CONFIGURE_GO_SETTINGS ~/.profile | wc -l | awk '{print $1}'`
+#    if [ "x${GO_INFO_FOUND}" = "x0"  ]
+#    then
+#        echo ''                                                   >> ~/.profile
+#        echo '### CONFIGURE_GO_SETTINGS for rtdavis installation' >> ~/.profile
+#        echo GOPATH=/home/pi/go >> ~/.profile
+#        echo GOROOT=/home/pi/sdk/go1.15 >> ~/.profile
+#        export PATH=$PATH:$GOROOT/bin:$GOPATH/bin >> ~/.profile
+#    fi
+#
+#    # for running here
+#    GOPATH=/home/pi/go
+#    GOROOT=/home/pi/sdk/go1.15
+#    export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+#    hash -r
+#
+#    # we pin golang to < 1.16 so Luc's instructions still work ok for
+#    # grabbing his code and building the resulting rtldavis binary
+#    # from source the old way.  Note however that this does not link that
+#    # version into the normal $PATH, so you need to call it with its full path
+#    #
+#    # the export PATH above 'might' work but we'll use full paths to be safe
+#    #
+#    ## install luc's code
+#    ## /home/pi/go/bin/go1.15 get -v github.com/lheijst/rtldavis
+#    ## cd go/src/github.com/lheijst/rtldavis/
+#    ## git submodule init
+#    ## git submodule update
+#    ## /home/pi/go/bin/go1.15 install -v .
+#
+    # this uses current go syntax from deb13 (1.24 at this writing)
+    cd
+    GOPATH=${HOME}/go
+    go install -v github.com/lheijst/rtldavis@latest
+    git clone https://github.com/lheijst/rtldavis go/src/lheijst/rtldavis
+    cd go/src/lheijst/rtldavis/
+    git submodule init
+    git submodule update
+    go mod init
+    go mod tidy
+    go mod vendor
+    go install -v .
 
     # for US users, to test rtldavis, run:
     #    $GOPATH/bin/rtldavis -tf US
@@ -167,7 +197,6 @@ then
     # again, for lsb output containing:
     #   Bus 001 Device 003: ID 0bda:2838 Realtek Semiconductor Corp. RTL2838 DVB-T
     #
-    echo "....blacklisting driver..."
     echo "blacklist dvb_usb_rtl28xxu" > /tmp/blacklist
     sudo cp /tmp/blacklist /etc/modprobe.d/blacklist_dvd_usb_rtl28xxu
     #
@@ -186,33 +215,33 @@ fi
 
 if [ "x${INSTALL_RTLDAVIS}" = "x1" ]
 then
-    echo "...... INSTALL_RTLDAVIS=1 - running ......."
+    echo ".......installing rtldavis.........."
     echo "   activate venv"
-    source ${HOME}/weewx-venv/bin/activate
+    source /home/pi/weewx-venv/bin/activate
     echo "   install extension"
-    weectl extension install -y ${HOME}/src/weewx-rtldavis
+    weectl extension install -y https://github.com/lheijst/weewx-rtldavis/archive/master.zip
 
     echo "   enable driver"
     weectl station reconfigure --driver=user.rtldavis --no-prompt
 
     # remove the template instruction from the config file
     echo "editing options..."
-    sudo sed -i -e s/\\[options\\]// ${HOME}/weewx-data/weewx.conf
+    sudo sed -i -e s/\\[options\\]// /home/pi/weewx-data/weewx.conf
 
     # US frequencies and imperial units
     echo "editing US settings..."
     echo "  setting frequency"
     echo "  setting rain_bucket_type"
-    sed -i -e s:frequency\ =\ EU:frequency\ =\ US:             ${HOME}/weewx-data/weewx.conf
-    sed -i -e s:rain_bucket_type\ =\ 1:rain_bucket_type\ =\ 0: ${HOME}/weewx-data/weewx.conf
+    sed -i -e s:frequency\ =\ EU:frequency\ =\ US:             /home/pi/weewx-data/weewx.conf
+    sed -i -e s:rain_bucket_type\ =\ 1:rain_bucket_type\ =\ 0: /home/pi/weewx-data/weewx.conf
 
     # we install rtldavis to a different place than Luc so patch the "cmd =" line
     echo "changing path to rtldavis"
-    sed -i -e s:/home/pi/work/bin/rtldavis:/usr/local/bin/rtldavis: ${HOME}/weewx-data/weewx.conf
+    sed -i -e s:/home/pi/work/bin/rtldavis:/home/pi/go/bin/rtldavis: /home/pi/weewx-data/weewx.conf
 
     # for very verbose logging of readings
-    echo "editing debug to set very verbose logging..."
-    sed -i -e s:debug_rtld\ =\ 2:debug_rtld\ =\ 3:             ${HOME}/weewx-data/weewx.conf
+    echo "editing debug..."
+    sed -i -e s:debug_rtld\ =\ 2:debug_rtld\ =\ 3:             /home/pi/weewx-data/weewx.conf
 
 else
     echo "...... INSTALL_RTLDAVIS=0 - skipping ......"
@@ -223,7 +252,6 @@ fi
 if [ "x${RUN_WEEWX_AT_BOOT}" = "x1" ]
 then
     # enable weewx for next reboot
-    echo "...... RUN_WEEWX_AT_BOOT=1 - running ......."
     sudo systemctl enable weewx
 else
     echo "...... RUN_WEEWX_AT_BOOT=0 - skipping ......"

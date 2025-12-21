@@ -3,7 +3,7 @@
 
 FWIW, I found the rtldavis installation repos and instructions to be very difficult to follow, and there are many pieces downloaded throughout the installation procedure from other upstream repositories.  Furthermore, there are edits needed if you a a US user.  Lastly, under the hood the 'go' steps do downloads from other upstream sites.  Assembling all the pieces at build time can be problematic and the risk is that if only one of the upstream sites disappears, it would not be possible to build a working weewx rtldavis installation from scratch.
 
-This repo attempts to make it easier and remove such risks.   It contains all the consolidated sources a bash script to automate building and installing the pieces of the puzzle.
+This repo attempts to make it easier and remove such risks.   It contains all the consolidated sources and a bash script to automate building and installing the pieces of the puzzle.
 
 Contents:
 =========
@@ -27,7 +27,7 @@ Other notes:
 
 - each set of steps has its individual INSTALL_XYZ variable at the top of the script so you can run them step-by-step, running the script multiple times and turning only the next step on ste-p-by-step.  I would highly recommend doing this rather than setting them all to '1' and running them all in one blast (and hoping).
 
-If you set everything = 1 and something in the middle blows up, it is entirely probable that following steps will fail too.  Simplest thing to do is to 'tee' your runs ala 'bash install-weewx-rtldavis.sh | tee /tmp/debug.txt 2>&1'
+  If you set everything = 1 and something in the middle blows up, it is entirely probable that following steps will fail too.  Simplest thing to do is to 'tee' your runs ala 'bash install-weewx-rtldavis.sh | tee /tmp/debug.txt 2>&1'.  As mentioned above, it is recommended to do it step-by-step.
 
 - the default weewx.conf that this installs has 'very' (like 'VERY') verbose logging enabled for rtldavis.  You'll almost certainly want to dial that back after you get things working.  See the driver section in weewx.conf for details.
 

@@ -37,6 +37,12 @@ Other notes:
 
 - after you successfully install the driver you 'should' be able to delete the source .tgz file, extracted sources tree, and install script.  Should.  This is untested.
 
+About Versions:
+===============
+This source tree was built and tested on debian13 and a debian13-based raspi os containing golang 1.24.2, and it is unknown if it will build on later versions of golang.  If you see "invalid go version '1.24.4': must match format 1.23" you are on an older os.  You might try "go mod edit -go=1.23" and hope it works.
+
+Go is sufficiently confusing to me that I will 'not' try to figure out how to deal with earlier golang versions nor different os versions. I do know this works on debian13, FWIW.
+
 Patches made to original sources:
 =================================
 

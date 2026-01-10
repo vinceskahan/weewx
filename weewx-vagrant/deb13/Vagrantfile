@@ -8,10 +8,15 @@
 #
 # the vagrant box and vm settings
 #
-BOX_BASE          = "bento/debian-13.0"  # required
-BOX_RAM           = "1024"               # required
-CHECK_BOX_VERSION = false                # required - set true to check for base box version
-UPDATE_ALL_PKGS   = "0"                  # required - whether to apt update over base box
+BOX_BASE          = "bento/debian-13.0"   # required
+BOX_RAM           = "1024"                # required
+CHECK_BOX_VERSION = false                 # required - set true to check for base box version
+UPDATE_ALL_PKGS   = "0"                   # required - whether to apt update over base box
+
+#
+# set timezone
+SET_TIMEZONE = "1"                    # 1 to set, 0 to skip
+TIME_ZONE    = "America/Los_Angeles"  # required if set to 1 above
 
 #
 # whether/how to sync runtime host folder to a vm directory
@@ -131,9 +136,21 @@ Vagrant.configure("2") do |config|
       echo "-----------------------------------------"
       echo " setting up git config global variables"
       echo "-----------------------------------------"
-      git config --global user.email GIT_USER_NAME
-      git config --global user.name  GIT_USER_EMAIL
+      git config --global user.email #{GIT_USER_NAME}
+      git config --global user.name  #{GIT_USER_EMAIL}
     SHELL
+  end
+
+  # optionally set vm timezone
+  if SET_TIMEZONE == "1"
+    if defined? TIME_ZONE
+      config.vm.provision "shell", inline: <<-SHELL
+        echo "-----------------------------------------"
+        echo " setting timezone"
+        echo "-----------------------------------------"
+        timedatectl set-timezone #{TIME_ZONE}
+      SHELL
+    end
   end
 
 end

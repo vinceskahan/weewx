@@ -15,30 +15,47 @@ then
    sudo cp git-prompt.sh /usr/local/bin/git-prompt.sh
    cat >> /home/vagrant/.bashrc <<-EOF
 
-function __git_ps1_venv() {
-    # Check if VIRTUAL_ENV is set and add it to the prompt display
-    if [[ -n "$VIRTUAL_ENV" ]]; then
-        # Extract only the basename of the venv directory (e.g., 'myproject_env')
-        VENV_NAME="($(basename "$VIRTUAL_ENV")) "
+#--- START GIT-PROMPT ---
+source /usr/local/bin/git-prompt.sh
+
+# Custom function to set the prompt
+function set_bash_prompt () {
+    # 1. Get the virtual environment name if active
+    if [[ -n "\${VIRTUAL_ENV-}" && -z "\${VIRTUAL_ENV_DISABLE_PROMPT+x}" ]]; then
+        # Extracts the directory name of the venv (e.g., "venv" or "myproject")
+        VENV_NAME="(\$(basename "\${VIRTUAL_ENV}")) "
     else
         VENV_NAME=""
     fi
-    # Combine venv info, user/host/path (original PS1), and git info
-    # The arguments to __git_ps1 are a prefix and a suffix
-    PS1="${VENV_NAME}\u@\h \w\$(__git_ps1 \" (\[%s])\")\$ "
+
+    # 2. Use __git_ps1 to get the git branch info
+    # The arguments control the format: "prefix%s" "suffix"
+    # The %s is a placeholder for the git status/branch string.
+    GIT_PROMPT=\$(__git_ps1 "[%s]")
+
+    # 3. Set the final PS1 (Prompt String 1)
+    # Example format: (venv) user@host:~/current/path on git-branch$
+    PS1="\${VENV_NAME}\[\u@\h\]:\w\] \${GIT_PROMPT}\\\$ "
 }
 
+# Tell bash to execute the function before displaying the prompt
+PROMPT_COMMAND=set_bash_prompt
 
-#--- START GIT-PROMPT ---
-#  change __git_ps1_venv to __git_ps1 for a non-venv-aware prompt
-GIT_PS1_SHOWDIRTYSTATE=1
-GIT_PS1_SHOWUPSTREAM=1
-GIT_PS1_SHOWUNTRACKEDFILES=1
-GIT_PS1_SHOWCOLORHINTS=1
+# Optional: Configure git-prompt behavior
+GIT_PS1_SHOWDIRTYSTATE=1         # Show if there are unstaged changes (+)
+GIT_PS1_SHOWUNTRACKEDFILES=1     # Show if there are untracked files (?)
+GIT_PS1_SHOWUPSTREAM="auto"      # Show upstream branch status (e.g., ahead, behind)
+GIT_PS1_SHOWCOLORHINTS=1         # Enable color hints
 GIT_PS1_SHOWSTASHSTATE=1
-source /usr/local/bin/git-prompt.sh
-####PROMPT_COMMAND='__git_ps1_venv "\u@\h:\W" "\\\$ "'
-PROMPT_COMMAND='__git_ps1_venv'
+
+#keepme
+##GIT_PS1_SHOWDIRTYSTATE=1
+#GIT_PS1_SHOWUPSTREAM=1
+#GIT_PS1_SHOWUNTRACKEDFILES=1
+#GIT_PS1_SHOWCOLORHINTS=1
+#GIT_PS1_SHOWSTASHSTATE=1
+#source /usr/local/bin/git-prompt.sh
+#PROMPT_COMMAND='__git_ps1 "\u@\h:\w" "\$ "'
 #--- END GIT-PROMPT ---
 
 EOF

@@ -1,0 +1,43 @@
+
+Alternate instructions courtesy of https://github.com/chaunceygardiner/weewx-xtide
+
+/usr/local/bin/tide -fc -df'%Y.%m.%d' -tf'%H:%M' -l'Des Moines, East Passage, Puget Sound, Washington' -b'2026-01-20 00:00' -e'2026-02-17 00:00'
+
+```
+
+#---------------
+
+# Install dependencies
+sudo apt install build-essential libpng-dev
+
+# Download and install libtcd
+cd /tmp
+wget https://flaterco.com/files/xtide/libtcd-2.2.7-r2.tar.bz2
+tar xf libtcd-2.2.7-r2.tar.bz2
+cd libtcd-2.2.7
+./configure
+make
+sudo make install
+sudo ldconfig
+
+# Download and build xtide
+cd /tmp
+wget https://flaterco.com/files/xtide/xtide-2.15.6.tar.xz
+tar xf xtide-2.15.6.tar.xz
+cd xtide-2.15.6
+./configure --without-x --disable-shared CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib"
+make
+sudo make install
+
+# Download harmonics data
+cd /tmp
+wget https://flaterco.com/files/xtide/harmonics-dwf-20251228-free.tar.xz
+tar xf harmonics-dwf-20251228-free.tar.xz
+cd harmonics-dwf-20251228
+sudo mkdir -p /usr/local/share/xtide
+sudo cp harmonics-dwf-20251228-free.tcd /usr/local/share/xtide/
+
+# Create conf file
+echo "/usr/local/share/xtide" | sudo tee /etc/xtide.conf
+
+```
